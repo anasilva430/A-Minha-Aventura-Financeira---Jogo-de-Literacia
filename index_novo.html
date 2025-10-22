@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Minha Aventura Financeira - Jogo de Literacia</title>
+    <script type="text/javascript" src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
+    <style>
+        /* Cores Atrativas e Estilo Básico */
+        :root {
+            --cor-principal: #4CAF50; /* Verde Esperança / Crescimento */
+            --cor-secundaria: #FFC107; /* Amarelo Alerta / Oportunidade */
+            --cor-fundo: #f4f4f9;
+            --cor-texto: #333;
+            --cor-botao: #1E88E5; /* Azul Confiança */
+            --cor-botao-hover: #1565C0;
+            --cor-perfil: #E0F2F1;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .content-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--cor-principal);
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: var(--cor-secundaria);
+            font-size: 1.5em;
+            margin-top: 0;
+        }
+
+        button {
+            background-color: var(--cor-botao);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Para botões de decisão */
+        }
+        
+        button:hover {
+            background-color: var(--cor-botao-hover);
+        }
+
+        #capa button {
+            width: auto;
+            min-width: 200px;
+        }
+
+        .seccao {
+            display: none;
+        }
+
+        #perfil-jogador {
+            background-color: var(--cor-perfil);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .opcoes-decisao button {
+            display: block;
+            margin: 10px 0;
+        }
+
+        /* Estilo para a secção de Resultados */
+        #resultados h2 {
+            color: var(--cor-principal);
+        }
+        #resultados p {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .resultado-positivo {
+            color: var(--cor-principal);
+        }
+        .resultado-negativo {
+            color: #E91E63; /* Vermelho - Risco */
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="content-container">
+
+    <div id="capa" class="seccao" style="display: block;">
+        <h1>A Minha Aventura Financeira</h1>
+        <h2>Literacia em Ação</h2>
+        <p>Bem-vindo(a) ao seu desafio de gestão financeira!</p>
+        
+        <p><strong>Cenário:</strong> Acabaste de fazer 18 anos e tens um part-time que te dá um rendimento mensal extra de 500€ (para além das tuas necessidades básicas já estarem asseguradas pelos teus pais/tutores). O teu objetivo é gerir este dinheiro e tomar as melhores decisões ao longo de 10 meses (rodadas) para atingir a maior "Pontuação Financeira".</p>
+        
+        <p><strong>Regras:</strong></p>
+        <ul>
+            <li>Terás 10 Rodadas / Decisões.</li>
+            <li>O teu tempo de jogo será registado.</li>
+            <li>As decisões têm impacto no teu Orçamento, Conhecimento (Poupança/Crédito) e Ética/Risco.</li>
+            <li>Ganha o grupo com a maior Pontuação Financeira e menor tempo.</li>
+        </ul>
+
+        <label for="registo-grupo">Código de Registo do Grupo:</label>
+        <input type="text" id="registo-grupo" placeholder="Ex: EQUIPA_ALFA_01" style="padding: 10px; margin: 10px; border-radius: 5px; border: 1px solid #ccc;">
+
+        <button onclick="iniciarJogo()">Começar Jogo!</button>
+    </div>
+
+    <div id="jogo" class="seccao">
+        <div id="perfil-jogador">
+            <span>Rodada: <span id="rodada-atual">1</span>/10</span>
+            <span>Saldo: <span id="saldo-atual" class="resultado-positivo">500.00 €</span></span>
+            <span>Pontuação (Ética/Conhecimento): <span id="pontuacao-atual">0</span></span>
+        </div>
+
+        <h2 id="titulo-cenario">Rodada 1: O Primeiro Salário e o Telemóvel Novo</h2>
+        <p id="descricao-cenario">Descrição do cenário e do dilema financeiro.</p>
+
+        <div class="opcoes-decisao" id="opcoes">
+            </div>
+
+        <p id="feedback" style="margin-top: 15px; font-weight: bold; min-height: 20px;"></p>
+        <button id="avancar-btn" onclick="proximaRodada()" style="display: none; width: auto; min-width: 150px;">Avançar</button>
+    </div>
+
+    <div id="resultados" class="seccao">
+        <h1>Fim da Aventura!</h1>
+        <p>Parabéns, tomaste as 10 decisões financeiras!</p>
+        <h2>Resultados Finais:</h2>
+        <p>Saldo Final: <span id="saldo-final" class="resultado-positivo"></span></p>
+        <p>Pontuação Final (Conhecimento/Ética): <span id="pontuacao-final"></span></p>
+        <p>Tempo de Jogo: <span id="tempo-final"></span></p>
+
+        <h3 style="color: var(--cor-secundaria);">Registo do Grupo (Envio por EmailJS)</h3>
+        
+        <form id="registo-form">
+            
+            <label for="email-grupo" style="display: block; margin-bottom: 5px;">Email do Grupo (Opcional, para resposta):</label>
+            <input type="email" id="email-grupo" name="reply_to" placeholder="ex: grupo.alfa@escola.pt" style="padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; width: 80%;">
+            
+            <button type="button" onclick="enviarResultados()" style="background-color: var(--cor-principal); width: auto;">✅ Submeter Resultados</button>
+        </form>
+        
+        <p id="envio-feedback" style="margin-top: 15px; font-weight: bold; min-height: 20px;"></p>
+        <button onclick="window.location.reload();" style="background-color: #D32F2F; margin-top: 15px; width: auto;">Reiniciar Jogo</button>
+    </div>
+</div>
+
+<script>
+
+    // VARIÁVEIS DE ESTADO DO JOGO
+let saldo = 500; // Saldo inicial em euros (€)
+let pontuacao = 0; // Pontuação de Conhecimento e Ética
+let rodadaAtual = 0;
+let tempoInicio;
+let tempoFim;
+let codigoRegisto = '';
+
+
+    // CONFIGURAÇÃO EMAILJS     
+    const EMAILJS_PUBLIC_KEY = 'd9d86G7bDE1WQ8eDy'; 
+    const EMAILJS_SERVICE_ID = 'service_hau66e2';         
+    const EMAILJS_TEMPLATE_ID = 'template_8hy77yw';       
+
+    // Inicializa o EmailJS com a sua chave pública
+    (function() {
+       emailjs.init(EMAILJS_PUBLIC_KEY);
+    })();
+
+// ESTRUTURA DOS CENÁRIOS (10 Rodadas)
+// Os cenários abordam todos os temas solicitados e são sequenciais.
+const cenarios = [
+    {
+        rodada: 1,
+        titulo: "Rodada 1: Necessidade vs Desejo e o Orçamento Inicial",
+        tema: "Planeamento e Gestão do Orçamento: Necessidades e Desejos",
+        descricao: "Com o seu primeiro rendimento de 500€, o seu telemóvel avariou e precisa de um novo. Vê dois modelos: um 'Super-Fancy' (600€, exige um pequeno empréstimo ou usar todo o saldo e mais), ou um 'Funcional e Robusto' (350€, cobre as suas necessidades).",
+        opcoes: [
+            { texto: "A) Comprar o telemóvel 'Funcional' (350€).", impacto: { saldo: -350, pontuacao: 10, feedback: "Boa! Priorizou a *necessidade* e manteve uma boa margem no seu *orçamento*." } },
+            { texto: "B) Comprar o 'Super-Fancy' (600€), pedindo 100€ emprestados a um amigo.", impacto: { saldo: -500, divida: 100, pontuacao: -5, feedback: "Mau. Ultrapassou o seu orçamento por um *desejo* e já começou com uma dívida (Risco/Crédito)." } },
+            { texto: "C) Decidir não comprar agora, usar um antigo e poupar.", impacto: { saldo: 0, pontuacao: 15, feedback: "Excelente! Demonstra planeamento e disciplina na poupança. Saldo intacto!" } }
+        ]
+    },
+    {
+        rodada: 2,
+        titulo: "Rodada 2: Meios de Pagamento e Risco",
+        tema: "Sistema e Produtos Financeiros Básicos: Meios de Pagamento; Prevenção de Fraude",
+        descricao: "Está a fazer uma compra online (30€). O site parece um pouco suspeito, mas o preço é ótimo. Que meio de pagamento usa para minimizar o risco de fraude?",
+        opcoes: [
+            { texto: "A) Cartão de Débito, usando os fundos principais da conta.", impacto: { saldo: -30, pontuacao: -10, feedback: "Risco alto! Usar o cartão principal em sites duvidosos expõe todo o seu saldo (Risco de Fraude)." } },
+            { texto: "B) Cartão de Crédito, com plafond alto.", impacto: { saldo: -30, pontuacao: 0, feedback: "Risco. Embora protegido pelo banco, está a usar crédito desnecessariamente e a expor um plafond alto." } },
+            { texto: "C) Cartão Pré-Pago (Carregado apenas com 30€).", impacto: { saldo: -30, pontuacao: 15, feedback: "Decisão esperta! O cartão pré-pago limita a exposição em caso de fraude. Conhecimento de Meios de Pagamento e Prevenção de Fraude." } }
+        ]
+    },
+    {
+        rodada: 3,
+        titulo: "Rodada 3: Poupança para o Futuro e Incerteza",
+        tema: "Poupança: Objetivos da Poupança; Planeamento: Evidenciar a relevância do planeamento a médio/longo prazo",
+        descricao: "Quer ir de intercâmbio daqui a 1 ano (custo estimado 1500€). Recebe um bónus de 100€ este mês. O que faz?",
+        opcoes: [
+            { texto: "A) Gasta em entretenimento, 'porque a vida são dois dias'.", impacto: { saldo: -100, pontuacao: -10, feedback: "Falta de planeamento! Compromete o seu objetivo de médio prazo." } },
+            { texto: "B) Coloca os 100€ numa Conta de Depósito à Ordem normal.", impacto: { saldo: 100, pontuacao: 5, feedback: "Bom. Poupa, mas a Conta à Ordem não rende juros (Aplicações da Poupança)." } },
+            { texto: "C) Abre uma Conta Poupança com o objetivo 'Intercâmbio' e coloca lá os 100€.", impacto: { saldo: 100, pontuacao: 20, feedback: "Excelente! Define um *objetivo de poupança* a médio prazo e escolhe uma aplicação mais adequada (Embora a remuneração seja baixa, mostra conhecimento)." } }
+        ]
+    },
+    {
+        rodada: 4,
+        titulo: "Rodada 4: Empréstimo Pessoal e Juros (Custos do Crédito)",
+        tema: "Crédito: Custos do Crédito; Empréstimos",
+        descricao: "O seu amigo que lhe emprestou os 100€ (Rodada 1, Opção B), agora pede-lhe um juro de 20% para a próxima semana. O que faz?",
+        opcoes: [
+            { texto: "A) Paga os 120€ (100€ + 20€ de juros) imediatamente. (Assume que tem saldo suficiente)", impacto: { saldo: -120, pontuacao: -10, feedback: "Péssimo. Pagar um juro tão alto por uma dívida de curto prazo é má gestão dos *Custos do Crédito*." } },
+            { texto: "B) Argumenta que juros de 20% são imorais e recusa-se a pagar os juros, pagando apenas os 100€.", impacto: { saldo: -100, pontuacao: 0, feedback: "Evita o custo, mas a sua relação de *ética* pode ser afetada." } },
+            { texto: "C) Paga os 100€ devidos e negoceia pagar apenas 5€ de 'agradecimento' pelo empréstimo.", impacto: { saldo: -105, pontuacao: 10, feedback: "Melhor. Honra a dívida principal e minimiza o custo do empréstimo. Responsabilidade do Crédito." } }
+        ],
+        // Condição: Só aparece se o jogador escolheu a opção B na Rodada 1
+        condicao: (estado) => estado.divida === 100, 
+        // Se a condição não for cumprida, a rodada é ignorada e passa-se à 5
+        rodadaAlternativa: 5
+    },
+    {
+        rodada: 5, // Será Rodada 4 se a anterior foi ignorada
+        titulo: "Rodada 5: Contas Bancárias e Responsabilidades",
+        tema: "Contas Bancárias: Compreender o funcionamento da conta de depósito à ordem; Direitos e Deveres",
+        descricao: "O banco X oferece-lhe uma 'Conta Jovem' gratuita, mas a letra miúda diz que se tiver o saldo a zero por 6 meses seguidos, paga 5€ de comissão. Qual a sua prioridade?",
+        opcoes: [
+            { texto: "A) Ignorar a letra miúda, 'porque é gratuita'.", impacto: { pontuacao: -10, feedback: "Não leu os seus *Direitos e Deveres* e a informação financeira. Risco de custos futuros." } },
+            { texto: "B) Aceitar, mas comprometer-se a rever o seu extrato mensalmente para evitar comissões.", impacto: { pontuacao: 10, feedback: "Assume a *responsabilidade* e o dever de monitorizar a sua conta (Gestão/Direitos e Deveres)." } },
+            { texto: "C) Abrir a conta, mas pedir ao gestor para lhe 'garantir' que nunca pagará nada.", impacto: { pontuacao: -5, feedback: "Depender da 'garantia verbal' em vez da *informação financeira* escrita é um erro." } }
+        ]
+    },
+    // ... (mais 5 cenários com os temas restantes)
+    {
+        rodada: 6,
+        titulo: "Rodada 6: Sistema Financeiro e Ética",
+        tema: "Sistema Financeiro; Ética e Responsabilidade Social",
+        descricao: "Uma instituição financeira promete retornos altíssimos (50% ao ano!) num esquema de investimento 'exclusivo'. Pede que convença 3 amigos para ganhar um bónus extra. Parece demasiado bom...",
+        opcoes: [
+            { texto: "A) Investir uma pequena quantia. O risco compensa a recompensa!", impacto: { saldo: -50, pontuacao: -15, feedback: "Alto risco! Esquemas assim são frequentemente fraudes. Desconhecimento do *Sistema Financeiro* e ausência de *ética*." } },
+            { texto: "B) Denunciar o esquema ao regulador (Banco de Portugal/CMVM) e avisar os seus amigos.", impacto: { pontuacao: 20, feedback: "Parabéns! Demonstra *ética*, *responsabilidade social* e conhecimento do *Sistema Financeiro*." } },
+            { texto: "C) Ignorar, mas não participar nem avisar ninguém.", impacto: { pontuacao: 0, feedback: "Neutro. Evita o risco, mas não demonstra *responsabilidade social*." } }
+        ]
+    },
+    {
+        rodada: 7,
+        titulo: "Rodada 7: Capacidade Financeira e Novo Empréstimo",
+        tema: "Crédito: Necessidades e Capacidades Financeiras",
+        descricao: "O seu rendimento mensal (500€) é estável, mas precisa de um novo PC (800€). Pensa pedir um *empréstimo ao consumo* de 800€. O seu saldo atual é de ${saldo.toFixed(2)} €.",
+        opcoes: [
+            { texto: "A) Pedir o empréstimo, assumindo a prestação mensal de 50€ durante 20 meses.", impacto: { saldo: 800, divida: 800, pontuacao: -10, feedback: "Risco. Não avaliou se os 50€ mensais comprometem as suas *capacidades financeiras* futuras." } },
+            { texto: "B) Usar o seu saldo (se >= 800€) para comprar, ou esperar mais 2 meses (poupar).", impacto: { saldo: 0, pontuacao: 15, feedback: "Exemplar! Prioriza a poupança em vez do crédito, respeitando a sua *capacidade financeira*." } },
+            { texto: "C) Pedir o empréstimo, mas só o faz porque a taxa de juro é 0% (promoção).", impacto: { saldo: 800, divida: 800, pontuacao: 5, feedback: "OK. A minimização dos custos é boa (Custos do Crédito), mas o empréstimo ainda é uma responsabilidade." } }
+        ]
+    },
+    {
+        rodada: 8,
+        titulo: "Rodada 8: Despesas e Rendimentos (Análise de Extrato)",
+        tema: "Planeamento e Gestão do Orçamento: Despesas e Rendimentos",
+        descricao: "Verifica que nos últimos 3 meses gastou, em média, 80€ em *snacks* e entregas de comida. Como reage a esta informação?",
+        opcoes: [
+            { texto: "A) Corta de imediato todas as despesas não essenciais.", impacto: { pontuacao: 5, feedback: "Reage, mas o corte radical é difícil de manter. *Planeamento* pode ser exagerado." } },
+            { texto: "B) Identifica os 80€ como despesa *supérflua* e define um teto de 30€/mês para esse item.", impacto: { pontuacao: 20, feedback: "Decisão de gestor! Relaciona *despesas e rendimentos* e faz um *planeamento* realista." } },
+            { texto: "C) Conclui que a despesa é 'normal' e continua a gastar.", impacto: { pontuacao: -10, feedback: "Má gestão. Falha em relacionar *despesas e rendimentos* no planeamento." } }
+        ]
+    },
+    {
+        rodada: 9,
+        titulo: "Rodada 9: Risco e Incerteza (Aplicação de Poupança)",
+        tema: "Risco e Incerteza; Aplicações da Poupança",
+        descricao: "Juntou 1000€. Pondera duas aplicações a longo prazo: Depósito a Prazo (Baixo Risco, 2% ano) ou Ações de Tecnologia (Alto Risco, Potencial de 15% ano, mas também perdas).",
+        opcoes: [
+            { texto: "A) Coloca os 1000€ nas Ações de Tecnologia.", impacto: { saldo: 0, pontuacao: -5, risco: 'alto', feedback: "Alto risco! Não *avalia o risco e a incerteza*. (Apenas recomendado para quem tem reservas)." } },
+            { texto: "B) Divide: 700€ no Depósito a Prazo e 300€ nas Ações.", impacto: { saldo: 0, pontuacao: 15, risco: 'moderado', feedback: "Inteligente! *Diversifica a aplicação*, avaliando o risco e a incerteza de forma moderada." } },
+            { texto: "C) Coloca tudo no Depósito a Prazo.", impacto: { saldo: 0, pontuacao: 5, risco: 'baixo', feedback: "Seguro, mas não aproveita oportunidades. O risco zero não existe, mas a *poupança* é garantida." } }
+        ]
+    },
+    {
+        rodada: 10,
+        titulo: "Rodada 10: Ética e Informação Financeira",
+        tema: "Ética e Responsabilidade Social; Direitos e Deveres: Informação Financeira",
+        descricao: "O seu banco envia um documento de 30 páginas com 'novas condições'. Decide...",
+        opcoes: [
+            { texto: "A) Assinar digitalmente sem ler, para 'despachar'.", impacto: { pontuacao: -10, feedback: "Irresponsável. Falha em exercer o *direito* de ser informado e cumprir o *dever* de ler a informação financeira." } },
+            { texto: "B) Ler o sumário e o capítulo sobre custos e comissões.", impacto: { pontuacao: 10, feedback: "Pragmático. Foca-se nas partes mais importantes. Um bom passo para exercer o seu *direito*." } },
+            { texto: "C) Ligar para o banco e pedir que lhe expliquem as 3 mudanças mais relevantes.", impacto: { pontuacao: 15, feedback: "Muito bom. Utiliza o seu *direito* de pedir esclarecimentos, mostrando proatividade na gestão da *informação financeira*." } }
+        ]
+    }
+];
+
+
+// FUNÇÕES DO JOGO
+
+
+// Inicia o jogo  
+function iniciarJogo() {
+    const inputRegisto = document.getElementById('registo-grupo').value.toUpperCase().trim();
+    
+    // 1. Prioriza o código do utilizador, ou gera um código
+    if (inputRegisto.length > 0) {
+        // Se o utilizador inseriu algo, valide o comprimento
+        if (inputRegisto.length < 3) { // Reduzi para 3 para maior flexibilidade 
+             alert("Por favor, insira um Código de Registo com pelo menos 3 caracteres.");
+             return;
+        }
+        codigoRegisto = inputRegisto; 
+    } else {
+        // Se o campo estiver vazio, usa o código gerado
+        codigoRegisto = `GRUPO_${Math.floor(Math.random() * 9000) + 1000}`; // Código mais longo e garantido 
+    }
+
+    // O jogo pode agora iniciar
+    tempoInicio = Date.now(); 
+    document.getElementById('capa').style.display = 'none'; 
+    document.getElementById('jogo').style.display = 'block'; 
+    rodadaAtual = 1; 
+    mostrarRodada(rodadaAtual); 
+}
+// Mostra o cenário atual e as opções
+function mostrarRodada(num) {
+    // Procura o cenário, considerando que pode haver rodadas condicionais
+    let cenario = cenarios.find(c => c.rodada === num);
+
+    // Se a rodada for condicional e a condição não for cumprida
+    if (cenario && cenario.condicao && !cenario.condicao({ saldo, pontuacao, divida: saldo < 500 ? 100 : 0 })) {
+        // Ignora esta rodada e avança para a próxima
+        rodadaAtual = cenario.rodadaAlternativa;
+        if (rodadaAtual <= 10) {
+            mostrarRodada(rodadaAtual);
+            return;
+        } else {
+            terminarJogo();
+            return;
+        }
+    }
+    
+    // Se não houver mais cenários, termina
+    if (!cenario) {
+        terminarJogo();
+        return;
+    }
+
+    document.getElementById('rodada-atual').textContent = cenario.rodada;
+    document.getElementById('saldo-atual').textContent = `${saldo.toFixed(2)} €`;
+    document.getElementById('pontuacao-atual').textContent = pontuacao;
+    document.getElementById('titulo-cenario').textContent = cenario.titulo;
+    // Substitui a variável do saldo na descrição, se necessário
+    document.getElementById('descricao-cenario').innerHTML = cenario.descricao.replace(/\${saldo.toFixed\(2\)}/, saldo.toFixed(2)); 
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('avancar-btn').style.display = 'none';
+
+    const opcoesDiv = document.getElementById('opcoes');
+    opcoesDiv.innerHTML = '';
+    
+    cenario.opcoes.forEach((opcao, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = opcao.texto;
+        btn.onclick = () => tomarDecisao(cenario.rodada, index);
+        opcoesDiv.appendChild(btn);
+    });
+}
+
+// Processa a decisão do jogador
+function tomarDecisao(rodadaNum, opcaoIndex) {
+    const cenario = cenarios.find(c => c.rodada === rodadaNum);
+    if (!cenario) return;
+
+    const opcao = cenario.opcoes[opcaoIndex];
+    const { impacto } = opcao;
+
+    // Aplica os impactos
+    saldo += impacto.saldo || 0; // Adiciona/subtrai saldo
+    pontuacao += impacto.pontuacao || 0; // Adiciona/subtrai pontuação
+    // Exemplo de impacto que afeta o estado para futuras decisões (Rodada 1)
+    if (impacto.divida !== undefined) { 
+        // A variável 'divida' é usada no cenario 4 como condição
+        saldo -= impacto.divida; // Já foi subtraída no saldo na Rodada 1 B
+    } 
+
+    // Atualiza o display de estado
+    document.getElementById('saldo-atual').textContent = `${saldo.toFixed(2)} €`;
+    document.getElementById('pontuacao-atual').textContent = pontuacao;
+    
+    // Mostra o feedback
+    document.getElementById('feedback').textContent = `Feedback: ${opcao.impacto.feedback}`;
+
+    // Desativa os botões e mostra o botão de avançar
+    document.querySelectorAll('#opcoes button').forEach(btn => btn.disabled = true);
+    document.getElementById('avancar-btn').style.display = 'block';
+}
+
+// Avança para a próxima rodada
+function proximaRodada() {
+    rodadaAtual++;
+    mostrarRodada(rodadaAtual);
+}
+
+
+// Termina o jogo 
+function terminarJogo() {
+        tempoFim = Date.now();
+        const tempoTotalSegundos = Math.round((tempoFim - tempoInicio) / 1000);
+        const minutos = Math.floor(tempoTotalSegundos / 60);
+        const segundos = tempoTotalSegundos % 60;
+        const tempoFormatado = `${minutos}m ${segundos}s`;
+
+        document.getElementById('jogo').style.display = 'none';
+        document.getElementById('resultados').style.display = 'block';
+
+        // 1. Apresenta resultados finais (na página)
+        document.getElementById('saldo-final').textContent = `${saldo.toFixed(2)} €`;
+        document.getElementById('pontuacao-final').textContent = pontuacao;
+        document.getElementById('tempo-final').textContent = tempoFormatado;
+
+        // O EmailJS não precisa que os dados estejam em inputs HIDDEN, mas
+        // em um objeto JS. A lógica de preenchimento é removida daqui.
+
+        // A cor do saldo final (Permanece igual)
+        const saldoElement = document.getElementById('saldo-final');
+        if (saldo < 500) {
+            saldoElement.classList.remove('resultado-positivo');
+            saldoElement.classList.add('resultado-negativo');
+        } else {
+            saldoElement.classList.remove('resultado-negativo');
+            saldoElement.classList.add('resultado-positivo');
+        }
+    }
+
+// Função para Enviar Resultados com EmailJS
+    async function enviarResultados() {
+        const form = document.getElementById('registo-form');
+        const feedback = document.getElementById('envio-feedback');
+        const submitButton = form.querySelector('button');
+
+        // Prevenir duplo clique
+        submitButton.disabled = true;
+        submitButton.textContent = 'A enviar...';
+        feedback.style.color = 'orange';
+        feedback.textContent = 'A processar o envio dos resultados...';
+
+        // 1. Criar o objeto de parâmetros com todos os resultados
+        const templateParams = {
+            // Estes nomes DEVEM CORRESPONDER aos campos {{...}} do seu Template EmailJS
+            codigo_grupo: codigoRegisto,
+            saldo_final: `${saldo.toFixed(2)} €`,
+            pontuacao_final: pontuacao,
+            tempo_jogo: document.getElementById('tempo-final').textContent,
+            
+            // Pega o email do campo visível
+            reply_to: document.getElementById('email-grupo').value || 'Sem Email de Resposta', 
+            assunto: `Registo Jogo Literacia Financeira - ${codigoRegisto}`
+        };
+
+        try {
+            // 2. Envio com o EmailJS
+            const response = await emailjs.send(
+                EMAILJS_SERVICE_ID, 
+                EMAILJS_TEMPLATE_ID, 
+                templateParams
+            );
+            
+            // 3. Tratar a resposta (O EmailJS usa um código de sucesso 200)
+            if (response.status === 200) {
+                feedback.style.color = '#4CAF50';
+                feedback.textContent = '✅ Resultados enviados com sucesso! Obrigado pela participação.';
+            } else {
+                throw new Error(`Erro de resposta do EmailJS: ${response.status}`);
+            }
+
+        } catch (error) {
+            console.error('Erro no envio do EmailJS:', error);
+            feedback.style.color = '#D32F2F';
+            feedback.textContent = '❌ Erro no envio do email. Verifique a consola ou a sua configuração no EmailJS.';
+            submitButton.disabled = false; // Permite tentar de novo
+            submitButton.textContent = 'Tentar Submeter Novamente';
+        }
+    }
+
+    // Inicia a mostrar a Capa (Permanece igual)
+    document.addEventListener('DOMContentLoaded', () => {
+        // Garante que o saldo e pontuação inicial estão corretos na capa/perfil
+        document.getElementById('saldo-atual').textContent = `${saldo.toFixed(2)} €`; 
+        document.getElementById('pontuacao-atual').textContent = pontuacao;
+    });
+</script>
+
+</body>
+</html>
