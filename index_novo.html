@@ -496,7 +496,7 @@ function terminarJogo() {
             }
 
         } catch (error) {
-            console.error('Erro no envio do EmailJS', error);
+            console.error('Erro no envio do EmailJS:', error);
             feedback.style.color = '#D32F2F';
             feedback.textContent = '❌ Erro no envio do email. Verifique a consola ou a sua configuração no EmailJS.';
             submitButton.disabled = false; // Permite tentar de novo
@@ -515,3 +515,4 @@ function terminarJogo() {
 </body>
 
 </html>
+
